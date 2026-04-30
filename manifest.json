@@ -1,0 +1,18 @@
+{
+  "name": "Climate Trivia — PGCN",
+  "short_name": "Climate Trivia",
+  "description": "Building Climate Resilience Through Education — Peace, Gender & Climate Network",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050c14",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2322c55e'/><text y='.9em' font-size='80' x='10'>🌍</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
