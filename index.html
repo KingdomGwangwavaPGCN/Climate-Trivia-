@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Climate Trivia — PGCN</title>
+  <meta name="theme-color" content="#050c14" />
+  <style>* { margin:0; padding:0; box-sizing:border-box; } body { background:#050c14; } #root { min-height:100vh; }</style>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+  window.storage = {
+    async get(k){const v=localStorage.getItem(k);if(v===null)throw new Error('nf');return{key:k,value:v};},
+    async set(k,v){try{localStorage.setItem(k,v);}catch(e){}return{key:k,value:v};},
+    async delete(k){localStorage.removeItem(k);return{key:k,deleted:true};},
+    async list(p){p=p||'';return{keys:Object.keys(localStorage).filter(k=>k.startsWith(p))};}
+  };
+  </script>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const Loader2 = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
+    const Trophy = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
+    const RefreshCw = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>;
+    const Play = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+    const BarChart3 = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>;
+    const Download = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+    const Award = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
+    const Shield = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+    const AlertCircle = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+    const Globe2 = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/></svg>;
+    const ChevronRight = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><polyline points="9 18 15 12 9 6"/></svg>;
+    const Lock = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+    const Printer = ({size=24,style={}}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
+
+const C = { bg:"#050c14", panel:"rgba(10,30,20,0.75)", border:"rgba(34,197,94,0.35)", green:"#22c55e", purple:"#a855f7", blue:"#3b82f6", gold:"#f59e0b", red:"#ef4444" };
+const G  = (x={}) => ({ background:C.panel, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", border:`1px solid ${C.border}`, borderRadius:16, ...x });
+const Btn = (col=C.green, out=false) => ({ background:out?"transparent":col, color:out?col:"#000", border:`2px solid ${col}`, borderRadius:10, fontWeight:800, fontSize:14, cursor:"pointer", padding:"11px 18px", transition:"all .2s" });
+
+const CAT = {
+  "Climate Science":     {icon:"🌡️",color:C.green},
+  "Gender & Climate":    {icon:"♀️", color:C.purple},
+  "Climate Action":      {icon:"⚡", color:C.gold},
+  "Peace & Conflict":    {icon:"☮️", color:C.blue},
+  "Policy & Governance": {icon:"🏛️",color:C.blue},
+  "Renewable Energy":    {icon:"☀️", color:C.gold},
+};
+
+const TR = {
+  en:{app:"Climate Trivia",tag:"Building Climate Resilience Through Education",consent:"Informed Consent",consentSub:"Research Ethics & Data Protection",accept:"Accept & Continue",decline:"Decline",register:"Player Registration",fname:"FULL NAME *",cls:"CLASS / GROUP",gen:"GENDER",ageG:"AGE GROUP",start:"Start Playing",support:"💚 Support Our Work",selCat:"📂 Select Categories",selAll:"Select All",clearAll:"Clear All",diff:"⚡ Difficulty",nq:"🔢 Questions",play:"Start Game",certNote:"🏆 Score 70%+ to unlock a Certificate",gen2:"Generating Questions…",ai:"Haiku AI · Fast · IPCC AR7 · COP30 · UNEP EGR 2025",q:"Question",of:"/",ok:"✓ Correct!",no:"✗ Incorrect",nextQ:"Next Question",seeR:"See Results",tup:"⏱ Time's Up!",done:"Quiz Complete!",retry:"Retry",cert:"Certificate",printCert:"Print Certificate",me:"M&E",share:"Share Score",catBD:"Category Breakdown",dash:"M&E Dashboard",players:"Players",sess:"Sessions",avg:"Avg Score",avgt:"Avg Time",gd:"Gender Distribution",ad:"Age Distribution",sh:"Session History",none:"No sessions recorded yet",admin:"Admin Mode",apin:"Enter Admin PIN",aacc:"Access Admin Panel",reset:"Reset All Data",fbl:"Feedback Log",nofb:"No feedback yet",easy:"Easy",med:"Medium",hard:"Hard",nm:"Name",cl:"Class",dt:"Date",sc:"Score",df:"Difficulty",hi:"Welcome",back:"← Back",allCl:"All Classes",sel:"Select",fem:"Female",mal:"Male",nb:"Non-binary",pnot:"Prefer not to say",u18:"Under 18",champ:"Climate Champion!",great:"Great Performance!",good:"Good Effort!",keep:"Keep Practising!",prate:"Pass Rate",ofl:"⚡ Offline Mode — built-in questions active",quitQ:"Exit Game?",quitMsg:"Your progress will be lost.",quitYes:"Exit",quitNo:"Keep Playing",snNote:"Note: Questions generated in English when AI is active. Offline bank is English only."},
+  sn:{app:"Mibvunzo yeMamiriro",tag:"Kuvaka Simba Kuburikidza neZvino",consent:"Kubvuma Kugamuchira",consentSub:"Tsika dzeNafurenzisi neData",accept:"Kubvuma & Kuramba Mberi",decline:"Kuramba",register:"Kunyoresa Mutambi",fname:"ZITA RIZERE *",cls:"KIRASI / BOKA",gen:"MURUME/MUKADZI",ageG:"MAKORE",start:"Tanga Mutambo",support:"💚 Tsigira Basa Redu",selCat:"📂 Sarudza Zvikamu",selAll:"Sarudza Zvose",clearAll:"Dzima Zvose",diff:"⚡ Iyesusu",nq:"🔢 Mibvunzo",play:"Tanga Mutambo",certNote:"🏆 Pinda 70%+ kuti uwane Chitupa",gen2:"Kugadzira Mibvunzo…",ai:"Haiku AI · Nokukurumidza · IPCC AR7 · COP30",q:"Mubvunzo",of:"/",ok:"✓ Zvakanaka!",no:"✗ Hazvina Kunaka",nextQ:"Mubvunzo Unotevera",seeR:"Ona Mhedzisiro",tup:"⏱ Nguva Yapera!",done:"Mutambo Wapera!",retry:"Edzokorora",cert:"Chitupa",printCert:"Printa Chitupa",me:"M&E",share:"Govera Puwa",catBD:"Kuparadzanisa kweZvikamu",dash:"Deshbhodi yeM&E",players:"Vatambi",sess:"Misesheni",avg:"Puwa Repakati",avgt:"Nguva Repakati",gd:"Kuvara kweMurume/Mukadzi",ad:"Kuvara kweMakore",sh:"Nhoroondo yeMisesheni",none:"Hapana misesheni yakanyoreswa",admin:"Nzira yeMusebenzi",apin:"Pinda PIN yeMusebenzi",aacc:"Pinda Padanho reMusebenzi",reset:"Dzima Data Yose",fbl:"Mashoko eVatambi",nofb:"Hapana mashoko akagamuchirwa",easy:"Nyore",med:"Pakati",hard:"Yakaoma",nm:"Zita",cl:"Kirasi",dt:"Zuva",sc:"Puwa",df:"Iyesusu",hi:"Mauya",back:"← Dzokera",allCl:"Makirasi Ose",sel:"Sarudza",fem:"Mukadzi",mal:"Murume",nb:"Kaviri",pnot:"Handidi Kutaura",u18:"Pasi pe18",champ:"Gamba reMamiriro!",great:"Zvakanaka Kwazvo!",good:"Basa Rakanaka!",keep:"Ramba Uchiedza!",prate:"Pasiti Yekupfuura",ofl:"⚡ Kushanda pasina Netiweki",quitQ:"Enda Kumashure?",quitMsg:"Mhedzisiro yako inoraswa.",quitYes:"Enda",quitNo:"Ramba Uchitamba",snNote:"Cherechedzo: Mibvunzo inogadzirwa neChirungu panguva AI iripo."},
+};
+
+// ── 60-QUESTION BANK — Updated April 2026 ──
+const BANK = [
+  {question:"What is the primary greenhouse gas emitted by human activities?",options:["Carbon Dioxide (CO2)","Oxygen","Nitrogen","Argon"],correctIndex:0,explanation:"CO2 from fossil fuels and deforestation is the principal driver of anthropogenic climate change.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"What does IPCC stand for?",options:["International Panel on Climate Change","Intergovernmental Panel on Climate Change","International Policy on Carbon Control","Intergovernmental Programme on Carbon Capture"],correctIndex:1,explanation:"The IPCC, established in 1988, is the UN body for assessing climate science and advising policymakers.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"What is the Paris Agreement's temperature target?",options:["3°C above pre-industrial levels","1.5–2°C above pre-industrial levels","0.5°C above pre-industrial levels","4°C above pre-industrial levels"],correctIndex:1,explanation:"The Paris Agreement aims to limit warming to well below 2°C, pursuing efforts towards 1.5°C.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"Which African region is most vulnerable to climate-induced drought?",options:["Central Africa","Southern and East Africa","North Africa only","West Africa only"],correctIndex:1,explanation:"Southern and East Africa face severe drought risks — including Zimbabwe's Chivi District — threatening food and water security.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"According to UNEP's Emissions Gap Report 2025, what warming is projected with full NDC implementation?",options:["1.5°C","1.8°C","2.3–2.5°C","3.5°C"],correctIndex:2,explanation:"The UNEP EGR 2025 found that even with full NDC implementation, warming projections stand at 2.3–2.5°C.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"What emissions reduction below 2019 levels is needed by 2035 for the 1.5°C pathway?",options:["20%","35%","55%","75%"],correctIndex:2,explanation:"The UNEP Emissions Gap Report 2025 requires 55% reductions below 2019 levels by 2035.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"What is 'climate feedback'?",options:["Government policy response","A process that amplifies or reduces warming effects","A financial carbon mechanism","Media reporting on climate"],correctIndex:1,explanation:"Climate feedbacks either amplify (positive) or dampen (negative) warming effects.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"What is Africa's approximate share of global greenhouse gas emissions?",options:["Less than 4%","15%","25%","35%"],correctIndex:0,explanation:"Africa contributes approximately 3–4% of global emissions yet bears some of the severest climate impacts.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"When is the IPCC AR7 Synthesis Report expected?",options:["2026","2027","2029","2031"],correctIndex:2,explanation:"IPCC AR7 Working Group outlines were agreed February 2025; the Synthesis Report is expected by late 2029.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"What is the subject of the IPCC 2027 Methodology Report?",options:["Methane from agriculture","Carbon Dioxide Removal and Carbon Capture, Utilization and Storage","Glacier melt","Urban heat islands"],correctIndex:1,explanation:"In April 2026, IPCC experts began work on the 2027 Methodology Report on CDR Technologies and CCUS.",category:"Climate Science",sdg:"SDG 13"},
+  {question:"Why are women and girls disproportionately affected by climate change?",options:["They are less educated","Gender inequalities limit their adaptive capacity","They contribute more to emissions","They live only in coastal areas"],correctIndex:1,explanation:"Existing gender inequalities restrict women's access to resources, land rights, and decision-making power.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"What does 'gender-responsive climate policy' mean?",options:["Policies written only by women","Policies addressing different climate impacts on men and women","Policies focused only on female farmers","Policies that exclude gender data"],correctIndex:1,explanation:"Gender-responsive policies recognise and address the different ways climate change affects people based on gender.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"How does climate change affect girls' education in rural Zimbabwe?",options:["No effect","Droughts and floods increase dropout rates","It improves attendance","Only affects boys"],correctIndex:1,explanation:"Climate shocks destroy harvests and increase poverty, forcing girls out of school — documented in Chivi District.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"Which SDG specifically addresses gender equality?",options:["SDG 13","SDG 5","SDG 1","SDG 10"],correctIndex:1,explanation:"SDG 5 aims to achieve gender equality and empower all women and girls by 2030.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"What is 'ecofeminism'?",options:["A branch of engineering","A framework linking the oppression of women with environmental exploitation","A climate finance mechanism","A type of renewable energy"],correctIndex:1,explanation:"Ecofeminism explores the connections between domination of nature and systematic oppression of women.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"What major gender-related outcome was adopted at COP30 (2025)?",options:["Binding women-only emissions target","A new Gender and Climate Action Plan","A global quota for female negotiators","A gender carbon tax"],correctIndex:1,explanation:"COP30 adopted a new Gender and Climate Action Plan with activities to increase women's influence in climate action.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"What is 'Feminist Political Ecology'?",options:["A political party focused on forests","A lens examining how gender, power, and environment intersect","A type of agricultural subsidy","A framework for carbon pricing"],correctIndex:1,explanation:"Feminist Political Ecology examines how gender relations shape access to and control over natural resources.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"What is the climate-gender nexus around early marriage in rural sub-Saharan Africa?",options:["No documented connection","Climate-induced poverty drives families to marry off daughters early","Early marriage reduces emissions","Only occurs in coastal communities"],correctIndex:1,explanation:"When climate shocks deepen poverty, some families resort to early marriage of daughters — a well-documented climate-gender dynamic.",category:"Gender & Climate",sdg:"SDG 5"},
+  {question:"What does SDG 13 call for?",options:["Life below water","Urgent action to combat climate change and its impacts","Zero hunger","Affordable clean energy"],correctIndex:1,explanation:"SDG 13 calls for urgent action to combat climate change and its impacts at local, national, and global levels.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"Where was COP30 held?",options:["Dubai, UAE","Baku, Azerbaijan","Belém, Brazil","Glasgow, Scotland"],correctIndex:2,explanation:"COP30 was held in Belém, Brazil, November 2025 — the 'Implementation COP' in the heart of the Amazon.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"What is the 'Belém Mission to 1.5'?",options:["A Brazilian national climate law","An initiative to encourage NDC ambition and keep 1.5°C within reach","A financial instrument for Amazon protection","A methane reduction programme"],correctIndex:1,explanation:"The Belém Mission to 1.5 was launched at COP30 to foster NDC ambition and implementation.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"What is 'climate adaptation'?",options:["Preventing all emissions immediately","Adjusting systems to cope with current and future climate impacts","Planting only trees","Moving all populations to cities"],correctIndex:1,explanation:"Adaptation involves changes to systems to cope with the effects of climate change already occurring or expected.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"What is a 'carbon footprint'?",options:["Physical damage from coal mining","Total greenhouse gas emissions caused by an individual or organisation","A government tax on carbon","The physical size of a coal plant"],correctIndex:1,explanation:"A carbon footprint measures total greenhouse gas emissions directly and indirectly caused by a person or activity.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"What is agroforestry?",options:["Large-scale industrial farming","Integrating trees with crops and livestock for resilience","Farming only in forests","A type of organic fertiliser"],correctIndex:1,explanation:"Agroforestry integrates trees with crops and livestock, improving carbon capture, soil health, and farmer resilience.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"What adaptation strategy is most relevant for Chivi District, Zimbabwe?",options:["Building sea walls","Rainwater harvesting and drought-resistant crops","Offshore wind farms","Nuclear energy"],correctIndex:1,explanation:"Rainwater harvesting and drought-resistant crops directly address the semi-arid challenges of Chivi District.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"What is the Tropical Forest Forever Facility (TFFF)?",options:["A UNFCCC treaty replacing Paris","A global fund to reward tropical forest conservation","An African Union forestry body","A carbon offset standard"],correctIndex:1,explanation:"The TFFF, launched at COP30, rewards and supports tropical forest conservation, with 20% earmarked for Indigenous peoples.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"How many countries supported a fossil fuel phase-out roadmap at COP30?",options:["Under 10","About 30","Over 80","All 196"],correctIndex:2,explanation:"Over 80 countries backed a fossil fuel transition roadmap at COP30, but petrostates blocked its inclusion in formal text.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"COP30 committed to tripling renewable energy capacity by which year?",options:["2028","2030","2035","2040"],correctIndex:1,explanation:"COP30's Belém Package included commitment to tripling renewable energy capacity globally by 2030.",category:"Climate Action",sdg:"SDG 13"},
+  {question:"How does climate change contribute to conflict?",options:["No connection","Resource scarcity can trigger or intensify conflicts","Only affects economic growth","Conflict happens only in coastal areas"],correctIndex:1,explanation:"Climate-induced scarcity of water, land, and food can heighten competition and tensions, contributing to conflict.",category:"Peace & Conflict",sdg:"SDG 16"},
+  {question:"What is 'climate migration'?",options:["Moving solar panels between countries","Movement of people driven by climate disruptions","A government resettlement programme","Seasonal migration of wildlife"],correctIndex:1,explanation:"Climate migration refers to people forced to move due to climate impacts such as drought or flooding.",category:"Peace & Conflict",sdg:"SDG 16"},
+  {question:"Which SDG focuses on peace, justice and strong institutions?",options:["SDG 1","SDG 8","SDG 16","SDG 3"],correctIndex:2,explanation:"SDG 16 promotes peaceful and inclusive societies, access to justice, and accountable institutions.",category:"Peace & Conflict",sdg:"SDG 16"},
+  {question:"What is the link between food insecurity and social peace?",options:["No documented relationship","Food insecurity from climate stress can increase social tensions","Only affects children","Peace depends entirely on military strength"],correctIndex:1,explanation:"Hunger and resource competition driven by climate shocks are widely recognised drivers of instability.",category:"Peace & Conflict",sdg:"SDG 16"},
+  {question:"What percentage of people affected by wildfires globally are in Africa?",options:["15%","40%","65%","85%"],correctIndex:3,explanation:"COP30 data showed 85% of people exposed to increased wildfires over the last 20 years are in Africa.",category:"Peace & Conflict",sdg:"SDG 16"},
+  {question:"What is 'climate justice'?",options:["Legal action against polluters only","Addressing the unequal burden of climate impacts on vulnerable communities","A type of carbon credit","A UN peacekeeping operation"],correctIndex:1,explanation:"Climate justice recognises that those who contributed least to climate change — including African communities, women, and youth — bear the greatest impacts.",category:"Peace & Conflict",sdg:"SDG 16"},
+  {question:"What is the UNFCCC?",options:["A UN food programme","The UN Framework Convention on Climate Change","A regional African trade body","A carbon trading company"],correctIndex:1,explanation:"The UNFCCC is the international treaty under which global climate negotiations, including the Paris Agreement, take place.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"What are Nationally Determined Contributions (NDCs)?",options:["National disaster relief budgets","Country-level climate action plans under the Paris Agreement","UN-imposed emissions limits","National carbon taxes"],correctIndex:1,explanation:"NDCs are each country's commitments to reduce emissions and adapt to climate change, updated every five years.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"What is 'climate finance'?",options:["Insurance for flood damage","Financial flows for mitigation and adaptation in developing countries","Government salaries for climate officials","Carbon trading between corporations"],correctIndex:1,explanation:"Climate finance refers to funding flows — public and private — supporting climate mitigation and adaptation.",category:"Policy & Governance",sdg:"SDG 17"},
+  {question:"What is 'Loss and Damage' in climate negotiations?",options:["Insurance claims for accidents","Compensation for climate impacts that cannot be adapted to","A carbon trading mechanism","The cost of the renewable transition"],correctIndex:1,explanation:"Loss and Damage addresses climate impacts that go beyond what can be adapted to, particularly in vulnerable nations.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"Which body oversees climate policy in Zimbabwe?",options:["Ministry of Finance","Ministry of Environment, Climate, Tourism and Hospitality Industry","Ministry of Education","Reserve Bank of Zimbabwe"],correctIndex:1,explanation:"Zimbabwe's Ministry of Environment, Climate, Tourism and Hospitality Industry leads national climate policy.",category:"Policy & Governance",sdg:"SDG 16"},
+  {question:"What is the NCQG agreed at COP29 in Baku?",options:["A new UN climate science body","The New Collective Quantified Goal — $300bn/year by 2035","A carbon removal standard","A methane monitoring platform"],correctIndex:1,explanation:"The NCQG commits developed countries to mobilise $300 billion per year for developing nations by 2035.",category:"Policy & Governance",sdg:"SDG 17"},
+  {question:"What is the Baku-to-Belém Roadmap?",options:["A trade route for African exports","A pathway to scale climate finance to $1.3 trillion annually by 2035","A fossil fuel timeline","A plan for relocating climate refugees"],correctIndex:1,explanation:"The Baku-to-Belém Roadmap outlines a pathway to scale total climate finance to $1.3 trillion annually by 2035.",category:"Policy & Governance",sdg:"SDG 17"},
+  {question:"What are NDCs 3.0?",options:["The third IPCC Assessment Reports","The third generation of Nationally Determined Contributions submitted in 2025","A new UN governance framework","A carbon market standard"],correctIndex:1,explanation:"NDCs 3.0 refers to the third generation of country climate action plans submitted to the UNFCCC in 2025.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"Where will COP32 be hosted?",options:["Nairobi, Kenya","Cairo, Egypt","Addis Ababa, Ethiopia, 2027","Cape Town, South Africa"],correctIndex:2,explanation:"COP32 will be hosted in Addis Ababa, Ethiopia, in 2027 — the first COP on African soil.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"What is the Just Transition Mechanism from COP30?",options:["A fund to compensate fossil fuel shareholders","An instrument to ensure the shift to clean energy is fair and inclusive","A legal framework for suing polluters","A voluntary carbon credit standard"],correctIndex:1,explanation:"COP30's Just Transition Mechanism supports communities in transitioning from fossil fuels while protecting workers and vulnerable populations.",category:"Policy & Governance",sdg:"SDG 16"},
+  {question:"What is the 'Global Stocktake' under the Paris Agreement?",options:["A UN audit of national GHG inventories","A five-year process to assess collective progress toward Paris goals","A financial review of climate funds","A scientific assessment of ice volumes"],correctIndex:1,explanation:"The Global Stocktake assesses collective Paris Agreement progress every five years, informing increasingly ambitious NDCs.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"How many Parties submitted NDCs by the end of COP30?",options:["Under 30","About 60","Over 122","All 196"],correctIndex:2,explanation:"Over 122 Parties had submitted new NDCs to the UNFCCC by the end of COP30 in Belém.",category:"Policy & Governance",sdg:"SDG 13"},
+  {question:"What did the African Group demand on adaptation finance at COP30?",options:["Eliminating all finance conditionalities","Tripling adaptation finance","Replacing grants with loans","Ending fossil fuel subsidies immediately"],correctIndex:1,explanation:"The African Group demanded tripling of adaptation finance at COP30, reflecting Africa's frontline vulnerability.",category:"Policy & Governance",sdg:"SDG 17"},
+  {question:"What is 'Mission 300' endorsed at the G20 Johannesburg Summit (2025)?",options:["Planting 300 billion trees by 2030","A World Bank–AfDB partnership to provide electricity to 300 million Africans by 2030","Training 300,000 climate scientists","Reducing African emissions by 300 megatons"],correctIndex:1,explanation:"Mission 300 is a World Bank–AfDB partnership endorsed at the first G20 on African soil, targeting electricity access for 300 million Africans.",category:"Policy & Governance",sdg:"SDG 7"},
+  {question:"Which renewable energy source has the most potential for Zimbabwe?",options:["Tidal energy","Solar energy","Geothermal energy","Wave energy"],correctIndex:1,explanation:"Zimbabwe receives abundant solar radiation year-round, making solar its greatest renewable resource.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What is net-zero emissions?",options:["Producing no energy","Balancing emissions produced with emissions removed","Using only nuclear power","A type of carbon tax"],correctIndex:1,explanation:"Net-zero means greenhouse gas emissions produced are balanced by an equivalent amount removed from the atmosphere.",category:"Renewable Energy",sdg:"SDG 13"},
+  {question:"What is the main advantage of solar home systems for rural Africa?",options:["Only works in cities","Off-grid electricity without fuel costs or grid infrastructure","Requires very large land areas","Only works in deserts"],correctIndex:1,explanation:"Solar home systems enable off-grid communities — like Ward 3, Chivi District — to access clean electricity affordably.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What does 'energy transition' mean?",options:["Switching electricity providers","Shifting the energy system from fossil fuels to renewables","Importing energy from other countries","Increasing coal production temporarily"],correctIndex:1,explanation:"Energy transition is the structural shift of the global energy sector away from fossil-based systems toward renewable sources.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What type of energy does Kariba Dam generate?",options:["Solar","Wind","Hydroelectric","Geothermal"],correctIndex:2,explanation:"Kariba Dam generates hydroelectric power. It is one of the world's largest hydroelectric dams by reservoir volume.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What is 'energy poverty'?",options:["Paying high electricity bills","Lack of access to modern, affordable, and reliable energy","A decline in fossil fuel revenue","Over-dependence on hydropower"],correctIndex:1,explanation:"Energy poverty affects hundreds of millions of Africans, limiting health, education, and economic opportunity.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What share of the world's solar energy potential is in Africa?",options:["Under 10%","Around 20%","Over 40%","About 60%"],correctIndex:2,explanation:"Africa holds over 40% of the world's solar energy potential — yet produces a fraction of global solar power.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What is 'green hydrogen'?",options:["Naturally occurring hydrogen in rainforests","Hydrogen produced from renewable electricity via electrolysis","A type of hydroelectric energy","A biofuel made from algae"],correctIndex:1,explanation:"Green hydrogen uses renewable electricity to split water. Africa's solar resources position it as a potential major producer.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What role does energy storage play in the renewable transition?",options:["Not needed with modern solar","Stores excess renewable energy for use when generation is low","Only applies to nuclear energy","Replaces the need for solar panels"],correctIndex:1,explanation:"Energy storage — particularly batteries — is critical for renewable reliability, storing surplus solar or wind energy.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What is 'distributed renewable energy' (DRE)?",options:["Large centralised wind stations","Small-scale renewable systems deployed at point of use for off-grid access","Sharing electricity from urban to rural grids","A carbon trading system"],correctIndex:1,explanation:"DRE — solar home systems and mini-grids — is the most viable pathway to energy access in rural Zimbabwe.",category:"Renewable Energy",sdg:"SDG 7"},
+  {question:"What is the significance of SDG 7 for climate action?",options:["It addresses ocean conservation","It calls for affordable, clean, reliable energy — foundational to development and climate mitigation","It focuses on zero hunger","It covers sustainable cities only"],correctIndex:1,explanation:"SDG 7 — Affordable and Clean Energy — is foundational: transitioning to clean energy reduces emissions while supporting development.",category:"Renewable Energy",sdg:"SDG 7"},
+];
+
+const TSEC = 30;
+const SPIN = `@keyframes spin{to{transform:rotate(360deg)}}`;
+
+// ── SHA-256 PIN HASHER ──
+async function sha256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+// ── AUDIO FEEDBACK ──
+function playTone(correct) {
+  try {
+    const a = new (window.AudioContext||window.webkitAudioContext)();
+    const o = a.createOscillator(), g = a.createGain();
+    o.connect(g); g.connect(a.destination);
+    o.type = correct?"sine":"square";
+    o.frequency.value = correct?660:180;
+    g.gain.setValueAtTime(0.18, a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+0.45);
+    o.start(); o.stop(a.currentTime+0.45);
+  } catch {}
+}
+
+// ── SCORECARD ──
+function makeCard(ref, name, sc, tot, pct, cats, diff) {
+  const cv=ref.current; if(!cv) return;
+  const ctx=cv.getContext("2d");
+  cv.width=800; cv.height=450;
+  const bg=ctx.createLinearGradient(0,0,800,450); bg.addColorStop(0,"#050c14"); bg.addColorStop(1,"#0a1e14");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,800,450);
+  ctx.strokeStyle=C.green; ctx.lineWidth=4; ctx.strokeRect(6,6,788,438);
+  ctx.strokeStyle="rgba(168,85,247,.35)"; ctx.lineWidth=1; ctx.strokeRect(14,14,772,422);
+  ctx.font="58px serif"; ctx.textAlign="center"; ctx.fillText("🌍",400,74);
+  const gr=ctx.createLinearGradient(200,0,600,0); gr.addColorStop(0,C.green); gr.addColorStop(1,C.purple);
+  ctx.fillStyle=gr; ctx.font="bold 11px sans-serif"; ctx.fillText("PEACE · GENDER · CLIMATE NETWORK",400,106);
+  ctx.fillStyle="#fff"; ctx.font="bold 34px sans-serif"; ctx.fillText("CLIMATE TRIVIA",400,148);
+  ctx.beginPath(); ctx.arc(400,250,76,0,2*Math.PI); ctx.strokeStyle=C.green; ctx.lineWidth=4; ctx.stroke();
+  ctx.fillStyle=C.green; ctx.font="bold 46px sans-serif"; ctx.fillText(pct+"%",400,263);
+  ctx.fillStyle="#6b7280"; ctx.font="14px sans-serif"; ctx.fillText(sc+" / "+tot,400,286);
+  ctx.fillStyle=C.gold; ctx.font="bold 24px sans-serif"; ctx.fillText(name,400,344);
+  ctx.fillStyle="#9ca3af"; ctx.font="13px sans-serif";
+  ctx.fillText(cats.join(" · ")+" · "+diff.toUpperCase(),400,370);
+  ctx.fillText(new Date().toLocaleDateString("en-GB")+" · pgcnglobal@gmail.com",400,392);
+  ctx.fillStyle="rgba(34,197,94,.2)"; ctx.font="11px sans-serif";
+  ctx.fillText("Kingdom Gwangwava · PGCN · +263 71 980 2319",400,424);
+  Object.assign(document.createElement("a"),{href:cv.toDataURL("image/png"),download:`PGCN_Score_${name.replace(/\s+/g,"_")}.png`}).click();
+}
+
+// ════════════════ APP ════════════════
+  const scoreRef  = useRef(0);
+  const sessRef   = useRef([]);
+  const timerRef  = useRef(null);
+  const canvasRef = useRef(null);
+
+  const [screen,  setScreen]  = useState("splash");
+  const [lang,    setLang]    = useState("en");
+  const [uName,   setUName]   = useState("");
+  const [uClass,  setUClass]  = useState("");
+  const [uGender, setUGender] = useState("");
+  const [uAge,    setUAge]    = useState("");
+  const [user,    setUser]    = useState(null);
+  const [ok,      setOk]      = useState(false);
+
+  const [cats,    setCats]    = useState([]);
+  const [diff,    setDiff]    = useState("medium");
+  const [numQ,    setNumQ]    = useState(5);
+  const [qs,      setQs]      = useState([]);
+  const [qi,      setQi]      = useState(0);
+  const [picked,  setPicked]  = useState(null);
+  const [score,   setScore]   = useState(0);
+  const [shown,   setShown]   = useState(false);
+  const [sessData,setSess]    = useState([]);
+  const [ssStart, setSSStart] = useState(null);
+  const [qStart,  setQStart]  = useState(null);
+  const [ofl,     setOfl]     = useState(false);
+
+  const [tLeft,   setTLeft]   = useState(TSEC);
+  const [donate,  setDonate]  = useState(false);
+  const [fbs,     setFbs]     = useState(false);
+  const [fbTxt,   setFbTxt]   = useState("");
+  const [pinIn,   setPinIn]   = useState("");
+  const [pinErr,  setPinErr]  = useState(false);
+  const [pinHash, setPinHash] = useState("");
+  const [showQuit,setShowQuit]= useState(false);
+
+  // ── window width for responsiveness ──
+  const [w, setW] = useState(typeof window!=="undefined"?window.innerWidth:800);
+  useEffect(()=>{ const h=()=>setW(window.innerWidth); window.addEventListener("resize",h); return()=>window.removeEventListener("resize",h); },[]);
+  const mob = w < 600;
+
+  const t = TR[lang];
+
+  // ── hash admin PIN on mount ──
+  useEffect(()=>{ sha256("PGCN2030").then(setPinHash); },[]);
+  useEffect(()=>{ const x=setTimeout(()=>setScreen("consent"),3200); return()=>clearTimeout(x); },[]);
+  useEffect(()=>{ try{const n=localStorage.getItem("pgcn_name"); if(n) setUName(n);}catch{} },[]);
+
+  // ── timer ──
+  const stopTimer = () => { if(timerRef.current){clearInterval(timerRef.current);timerRef.current=null;} };
+  const startTimer= () => { stopTimer(); setTLeft(TSEC); timerRef.current=setInterval(()=>setTLeft(p=>Math.max(0,p-1)),1000); };
+  useEffect(()=>()=>stopTimer(),[]);
+
+  // ── time-up ──
+  useEffect(()=>{
+    if(screen!=="game"||shown||tLeft>0) return;
+    stopTimer();
+    const q=qs[qi]; if(!q) return;
+    const entry={questionNumber:qi+1,question:q.question,category:q.category,difficulty:diff,selectedAnswer:"Timed out",correctAnswer:q.options[q.correctIndex],isCorrect:false,timeSpentSeconds:TSEC};
+    sessRef.current=[...sessRef.current,entry];
+    setSess([...sessRef.current]); setShown(true); playTone(false);
+  },[tLeft,screen,shown]);
+
+  const toggleCat = c => setCats(p=>p.includes(c)?p.filter(x=>x!==c):[...p,c]);
+  const selectAll = () => setCats(Object.keys(CAT));
+  const clearAll  = () => setCats([]);
+
+  const doLogin = async () => {
+    if(!uName.trim()) return;
+    try{localStorage.setItem("pgcn_name",uName.trim());}catch{}
+    const id=`u_${Date.now()}`;
+    const u={id,name:uName.trim(),class:uClass.trim(),gender:uGender,age:uAge,ts:new Date().toISOString()};
+    try{await window.storage.set(`user:${id}`,JSON.stringify(u));}catch{}
+    setUser(u); setScreen("setup");
+  };
+
+  const generate = async () => {
+    if(!cats.length) return;
+    setScreen("loading"); setSSStart(Date.now()); setOfl(false);
+    scoreRef.current=0; sessRef.current=[];
+    setScore(0); setSess([]); setQi(0); setPicked(null); setShown(false);
+
+    const useFallback = () => {
+      const pool=cats.flatMap(c=>BANK.filter(q=>q.category===c));
+      const shuf=[...pool].sort(()=>Math.random()-.5);
+      setQs(shuf.length>=numQ?shuf.slice(0,numQ):[...shuf,...BANK].slice(0,numQ));
+      setOfl(true);
+    };
+
+    try {
+      const ctrl=new AbortController();
+      const to=setTimeout(()=>ctrl.abort(),20000);
+      const snPrompt = lang==="sn" ? "Generate questions in chiShona language where possible." : "";
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST", signal:ctrl.signal,
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-haiku-4-5-20251001",
+          max_tokens:1500,
+          messages:[{role:"user",content:`Generate ${numQ} climate trivia questions. Topics: ${cats.join(", ")}. Level: ${diff}. Africa/Zimbabwe/Chivi context, SDGs, COP30 Belém 2025, IPCC AR7, UNEP EGR 2025. ${snPrompt} JSON ONLY — no extra text: [{"question":"","options":["","","",""],"correctIndex":0,"explanation":"","category":"","sdg":""}]`}],
+        }),
+      });
+      clearTimeout(to);
+      const data=await res.json();
+      const txt=data.content.find(c=>c.type==="text")?.text||"";
+      const parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());
+      if(Array.isArray(parsed)&&parsed.length>0) setQs(parsed);
+      else useFallback();
+    } catch { useFallback(); }
+    setQStart(Date.now()); setScreen("game"); startTimer();
+  };
+
+  const pick = idx => {
+    if(shown) return;
+    stopTimer();
+    const q=qs[qi]; const correct=idx===q.correctIndex;
+    if(correct) scoreRef.current++;
+    playTone(correct);
+    const entry={questionNumber:qi+1,question:q.question,category:q.category,difficulty:diff,selectedAnswer:q.options[idx],correctAnswer:q.options[q.correctIndex],isCorrect:correct,timeSpentSeconds:Math.round((Date.now()-qStart)/1000)};
+    sessRef.current=[...sessRef.current,entry];
+    setPicked(idx); setShown(true);
+    setScore(scoreRef.current); setSess([...sessRef.current]);
+  };
+
+  const next = () => {
+    if(qi<qs.length-1){ setQi(p=>p+1); setPicked(null); setShown(false); setQStart(Date.now()); startTimer(); }
+    else { saveSession(); setScreen("results"); }
+  };
+
+  const saveSession = async () => {
+    const fs=scoreRef.current; const fd=[...sessRef.current];
+    const pct=Math.round((fs/qs.length)*100);
+    const bd={};
+    fd.forEach(d=>{ if(!bd[d.category]) bd[d.category]={correct:0,total:0}; bd[d.category].total++; if(d.isCorrect) bd[d.category].correct++; });
+    try{await window.storage.set(`session:${user.id}:${Date.now()}`,JSON.stringify({userId:user.id,userName:user.name,userClass:user.class,userGender:user.gender,userAge:user.age,timestamp:new Date().toISOString(),categories:cats,difficulty:diff,totalQuestions:qs.length,score:fs,percentage:pct,totalTimeSeconds:Math.round((Date.now()-ssStart)/1000),categoryBreakdown:bd,questionDetails:fd,offlineMode:ofl}));}catch{}
+  };
+
+  const getCertHTML = () => {
+    const pct=Math.round((scoreRef.current/qs.length)*100);
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Georgia,serif;background:#050c14;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}.c{background:linear-gradient(135deg,#0a1e14,#0f2a1a);border:3px solid #22c55e;border-radius:20px;padding:60px;max-width:820px;width:100%;text-align:center;color:#fff;box-shadow:0 0 60px rgba(34,197,94,.3)}@media print{body{background:#fff}.c{border:3px solid #22c55e;box-shadow:none}}</style></head><body><div class="c"><div style="font-size:72px;margin-bottom:20px">🌍</div><div style="font-size:11px;letter-spacing:5px;color:#a855f7;text-transform:uppercase;margin-bottom:8px">Peace · Gender · Climate Network</div><h1 style="font-size:40px;color:#f59e0b;margin-bottom:6px">Certificate of Achievement</h1><h2 style="font-size:15px;letter-spacing:3px;color:#22c55e;text-transform:uppercase;margin-bottom:40px">Climate Education Excellence</h2><div style="font-size:52px;color:#22c55e;border-bottom:2px solid #22c55e;display:inline-block;padding-bottom:8px;margin-bottom:30px">${user?.name}</div><div style="font-size:28px;color:#f59e0b;margin-bottom:10px">${scoreRef.current}/${qs.length} · ${pct}%</div><div style="font-size:14px;color:#6b7280;margin-bottom:50px">${new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</div><div style="font-size:18px;color:#a855f7">Kingdom Gwangwava</div><div style="font-size:13px;color:#6b7280">Founder & Executive Director · PGCN · pgcnglobal@gmail.com · +263 71 980 2319</div></div></body></html>`;
+  };
+
+  const downloadCert = () => {
+    const pct=Math.round((scoreRef.current/qs.length)*100);
+    if(pct<70){alert(lang==="sn"?"Chitupa chinoda 70%+":"Certificates require 70% or above.");return;}
+    Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([getCertHTML()],{type:"text/html"})),download:`PGCN_Cert_${user?.name.replace(/\s+/g,"_")}.html`}).click();
+  };
+
+  const printCert = () => {
+    const pct=Math.round((scoreRef.current/qs.length)*100);
+    if(pct<70){alert(lang==="sn"?"Chitupa chinoda 70%+":"Certificates require 70% or above.");return;}
+    const w2=window.open("","_blank"); w2.document.write(getCertHTML()); w2.document.close(); w2.focus(); setTimeout(()=>w2.print(),500);
+  };
+
+  const sendFb = async () => {
+    if(!fbTxt.trim()) return;
+    try{await window.storage.set(`fb:${Date.now()}`,JSON.stringify({userId:user?.id,userName:user?.name,feedback:fbTxt,ts:new Date().toISOString()}));}catch{}
+    setFbTxt(""); setFbs(false); alert(lang==="sn"?"Mashoko ako agamuchirwa!":"Feedback submitted! Thank you.");
+  };
+
+  const checkPin = async () => {
+    if(!pinHash) return;
+    const h=await sha256(pinIn);
+    if(h===pinHash){setPinErr(false);setPinIn("");setScreen("admin");}
+    else setPinErr(true);
+  };
+
+  const doQuit = () => { stopTimer(); setShowQuit(false); restart(); };
+
+  const restart = () => {
+    scoreRef.current=0; sessRef.current=[];
+    setScreen("setup"); setCats([]); setDiff("medium"); setNumQ(5);
+    setQs([]); setQi(0); setPicked(null); setScore(0); setShown(false); setSess([]);
+  };
+
+  const tColor = tLeft>15?C.green:tLeft>7?C.gold:C.red;
+  const tPct   = (tLeft/TSEC)*100;
+  const fpct   = qs.length?Math.round((scoreRef.current/qs.length)*100):0;
+  const catBD  = () => { const b={}; sessRef.current.forEach(d=>{ if(!b[d.category]) b[d.category]={correct:0,total:0}; b[d.category].total++; if(d.isCorrect) b[d.category].correct++; }); return b; };
+
+  // ── MODALS ──
+  const LangBtn = () => <button onClick={()=>setLang(l=>l==="en"?"sn":"en")} style={{...Btn(C.purple,true),padding:"7px 12px",fontSize:12}}>🌐 {lang==="en"?"SN":"EN"}</button>;
+
+  const DonModal = () => (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99,padding:16}}>
+      <div style={{...G(),padding:36,maxWidth:420,width:"100%",textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>💚</div>
+        <h2 style={{color:C.green,fontSize:26,fontWeight:900,marginBottom:6}}>Support Climate Action</h2>
+        <p style={{color:"#9ca3af",fontSize:14,marginBottom:24}}>Help expand climate education across Africa</p>
+        {[["EcoCash / OneMoney","+263 71 980 2319"],["InnBucks","+263 71 980 2319"]].map(([l,n])=>(
+          <div key={l} style={{background:"rgba(34,197,94,.08)",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 20px",marginBottom:10,textAlign:"left"}}>
+            <div style={{color:"#6b7280",fontSize:12,marginBottom:4}}>{l}</div>
+            <div style={{color:C.green,fontSize:22,fontWeight:900}}>{n}</div>
+          </div>
+        ))}
+        <p style={{color:"#6b7280",fontSize:12,margin:"16px 0 20px"}}>Kingdom Gwangwava · PGCN</p>
+        <button style={{...Btn(C.green),width:"100%"}} onClick={()=>setDonate(false)}>Close</button>
+      </div>
+    </div>
+  );
+
+  const FbModal = () => (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99,padding:16}}>
+      <div style={{...G(),padding:32,maxWidth:420,width:"100%"}}>
+        <h2 style={{color:C.green,fontSize:22,fontWeight:900,marginBottom:16}}>Feedback / Report Issue</h2>
+        <textarea value={fbTxt} onChange={e=>setFbTxt(e.target.value)} placeholder="Share thoughts or report an issue…"
+          style={{width:"100%",background:"rgba(0,0,0,.5)",color:C.green,border:`1px solid ${C.border}`,borderRadius:10,padding:14,fontSize:14,outline:"none",minHeight:110,fontFamily:"inherit",resize:"vertical",boxSizing:"border-box"}}/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:14}}>
+          <button style={Btn(C.green)} onClick={sendFb}>Submit</button>
+          <button style={Btn(C.green,true)} onClick={()=>setFbs(false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const QuitModal = () => (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99,padding:16}}>
+      <div style={{...G(),padding:32,maxWidth:380,width:"100%",textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🚪</div>
+        <h2 style={{color:"#fff",fontWeight:900,fontSize:22,marginBottom:8}}>{t.quitQ}</h2>
+        <p style={{color:"#6b7280",fontSize:14,marginBottom:24}}>{t.quitMsg}</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <button style={Btn(C.red)} onClick={doQuit}>{t.quitYes}</button>
+          <button style={Btn(C.green,true)} onClick={()=>setShowQuit(false)}>{t.quitNo}</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const TopBar = () => (
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:8}}>
+      <div><div style={{color:"#fff",fontWeight:800}}>👋 {t.hi}, {user?.name}!</div>{user?.class&&<div style={{color:"#6b7280",fontSize:12}}>{user.class}</div>}</div>
+      <div style={{display:"flex",gap:7,flexWrap:"wrap",justifyContent:"flex-end"}}>
+        <LangBtn/>
+        <button style={{...Btn(C.blue,true),padding:"7px 12px",fontSize:12}} onClick={()=>setScreen("adminPin")}><Lock size={13}/></button>
+        <button style={{...Btn(C.blue,true),padding:"7px 12px",fontSize:12}} onClick={()=>setScreen("analytics")}>📊</button>
+        <button style={{...Btn(C.green,true),padding:"7px 12px",fontSize:12}} onClick={()=>setDonate(true)}>💚</button>
+        <button style={{...Btn(C.gold,true),padding:"7px 12px",fontSize:12}} onClick={()=>setFbs(true)}><AlertCircle size={13}/></button>
+      </div>
+    </div>
+  );
+
+  // ══ SCREENS ══
+  if(screen==="splash") return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <style>{SPIN}</style>
+      <div style={{textAlign:"center",maxWidth:520}}>
+        <div style={{width:110,height:110,background:"linear-gradient(135deg,#22c55e,#a855f7)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",fontSize:52,boxShadow:"0 0 60px rgba(34,197,94,.4)"}}>🌍</div>
+        <div style={{fontSize:11,letterSpacing:6,color:C.purple,textTransform:"uppercase",marginBottom:6}}>Peace · Gender · Climate Network</div>
+        <h1 style={{fontSize:50,fontWeight:900,background:"linear-gradient(135deg,#22c55e,#a855f7)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:8}}>{TR.en.app}</h1>
+        <p style={{color:"#6b7280",fontSize:15,marginBottom:28}}>{TR.en.tag}</p>
+        <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:28,flexWrap:"wrap"}}>
+          {["SDG 4","SDG 5","SDG 7","SDG 13","SDG 16","SDG 17"].map(s=><span key={s} style={{background:"rgba(34,197,94,.1)",border:`1px solid ${C.border}`,borderRadius:20,padding:"4px 12px",color:C.green,fontSize:11,fontWeight:700}}>{s}</span>)}
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,color:"#6b7280",fontSize:13}}>
+          <Loader2 size={18} style={{animation:"spin 1s linear infinite",color:C.green}}/><span>Loading…</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  if(screen==="consent") return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{maxWidth:560,width:"100%"}}>
+        <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}><LangBtn/></div>
+        <div style={{textAlign:"center",marginBottom:24}}><Shield size={48} style={{color:C.blue,marginBottom:10}}/><h1 style={{fontSize:32,fontWeight:900,color:"#fff",marginBottom:4}}>{t.consent}</h1><p style={{color:"#6b7280",fontSize:14}}>{t.consentSub}</p></div>
+        <div style={{...G(),padding:28,marginBottom:16,maxHeight:280,overflowY:"auto"}}>
+          {[["Purpose","Monitor and evaluate climate education effectiveness for PGCN program improvement and impact assessment."],["Data Collected","Name, optional demographics, quiz performance, response times, usage patterns."],["Usage","Program improvement, impact assessment, and aggregated reporting to UN agencies and donors."],["Your Rights","Voluntary · Secure · Confidential · GDPR/AU compliant · Deletion: pgcnglobal@gmail.com"]].map(([h,tx])=>(
+            <div key={h} style={{marginBottom:18}}><div style={{color:C.green,fontWeight:800,fontSize:13,marginBottom:4}}>{h}</div><div style={{color:"#9ca3af",fontSize:13,lineHeight:1.6}}>{tx}</div></div>
+          ))}
+        </div>
+        <label style={{...G(),padding:16,display:"flex",alignItems:"center",gap:14,cursor:"pointer",marginBottom:16}}>
+          <input type="checkbox" checked={ok} onChange={e=>setOk(e.target.checked)} style={{width:20,height:20,accentColor:C.green}}/>
+          <span style={{color:"#d1d5db",fontSize:14}}>I consent to participate and agree to data collection as described.</span>
+        </label>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <button style={{...Btn(C.green),opacity:ok?1:0.4}} onClick={()=>{if(ok) setScreen("login");}}>{t.accept}</button>
+          <button style={Btn(C.green,true)} onClick={()=>alert("Thank you.")}>{t.decline}</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if(screen==="login") return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      {donate&&<DonModal/>}
+      <div style={{maxWidth:520,width:"100%"}}>
+        <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}><LangBtn/></div>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{width:70,height:70,background:"linear-gradient(135deg,#22c55e,#a855f7)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",fontSize:32}}>🌍</div>
+          <h1 style={{fontSize:32,fontWeight:900,background:"linear-gradient(135deg,#22c55e,#a855f7)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{t.app}</h1>
+          <p style={{color:"#6b7280",fontSize:13}}>Peace, Gender & Climate Network</p>
+        </div>
+        <div style={{...G(),padding:28}}>
+          <h2 style={{color:"#fff",fontWeight:800,fontSize:18,marginBottom:20}}>{t.register}</h2>
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12,marginBottom:12}}>
+            <div><label style={{color:"#9ca3af",fontSize:12,fontWeight:700,display:"block",marginBottom:6}}>{t.fname}</label><input value={uName} onChange={e=>setUName(e.target.value)} placeholder={lang==="sn"?"Zita rako":"Your name"} style={{width:"100%",background:"rgba(0,0,0,.4)",color:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,outline:"none",boxSizing:"border-box"}}/></div>
+            <div><label style={{color:"#9ca3af",fontSize:12,fontWeight:700,display:"block",marginBottom:6}}>{t.cls}</label><input value={uClass} onChange={e=>setUClass(e.target.value)} placeholder="e.g. Form 4A" style={{width:"100%",background:"rgba(0,0,0,.4)",color:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,outline:"none",boxSizing:"border-box"}}/></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12,marginBottom:20}}>
+            <div><label style={{color:"#9ca3af",fontSize:12,fontWeight:700,display:"block",marginBottom:6}}>{t.gen}</label>
+              <select value={uGender} onChange={e=>setUGender(e.target.value)} style={{width:"100%",background:"rgba(0,0,0,.6)",color:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,outline:"none"}}>
+                {[["",t.sel],["female",t.fem],["male",t.mal],["non-binary",t.nb],["prefer-not",t.pnot]].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+            <div><label style={{color:"#9ca3af",fontSize:12,fontWeight:700,display:"block",marginBottom:6}}>{t.ageG}</label>
+              <select value={uAge} onChange={e=>setUAge(e.target.value)} style={{width:"100%",background:"rgba(0,0,0,.6)",color:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",fontSize:14,outline:"none"}}>
+                {[["",t.sel],["under-18",t.u18],["18-24","18–24"],["25-34","25–34"],["35-44","35–44"],["45+","45+"]].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+          </div>
+          <button style={{...Btn(C.green),width:"100%",fontSize:16,padding:"14px 20px",marginBottom:10}} onClick={doLogin}>{t.start} <ChevronRight size={16} style={{display:"inline",verticalAlign:"middle"}}/></button>
+          <button style={{...Btn(C.green,true),width:"100%",fontSize:13}} onClick={()=>setDonate(true)}>{t.support}</button>
+        </div>
+        <p style={{textAlign:"center",color:"#374151",fontSize:12,marginTop:14}}>Kingdom Gwangwava · +263 71 980 2319 · pgcnglobal@gmail.com</p>
+      </div>
+    </div>
+  );
+
+  if(screen==="setup") return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      {donate&&<DonModal/>} {fbs&&<FbModal/>}
+      <div style={{maxWidth:580,width:"100%"}}>
+        <TopBar/>
+        {/* Certificate note */}
+        <div style={{background:"rgba(245,158,11,.08)",border:`1px solid rgba(245,158,11,.35)`,borderRadius:10,padding:"10px 16px",marginBottom:14,color:C.gold,fontSize:13,fontWeight:700,textAlign:"center"}}>{t.certNote}</div>
+        {/* Categories */}
+        <div style={{...G(),padding:24,marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <h2 style={{color:"#fff",fontWeight:800,fontSize:16}}>{t.selCat}</h2>
+            <div style={{display:"flex",gap:6}}>
+              <button style={{...Btn(C.green,true),padding:"5px 10px",fontSize:11}} onClick={selectAll}>{t.selAll}</button>
+              <button style={{...Btn(C.red,true),padding:"5px 10px",fontSize:11}} onClick={clearAll}>{t.clearAll}</button>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:8}}>
+            {Object.entries(CAT).map(([cat,{icon,color}])=>{
+              const on=cats.includes(cat);
+              return <button key={cat} onClick={()=>toggleCat(cat)} style={{background:on?`${color}22`:"rgba(0,0,0,.3)",border:`2px solid ${on?color:"rgba(255,255,255,.08)"}`,borderRadius:10,padding:"12px 14px",color:on?color:"#9ca3af",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:8,transition:"all .2s"}}><span style={{fontSize:18}}>{icon}</span>{cat}</button>;
+            })}
+          </div>
+        </div>
+        {/* Difficulty */}
+        <div style={{...G(),padding:24,marginBottom:14}}>
+          <h2 style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:14}}>{t.diff}</h2>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+            {[["easy","🌱",C.green,t.easy],["medium","🔥",C.gold,t.med],["hard","💡",C.purple,t.hard]].map(([d,ic,col,lbl])=>(
+              <button key={d} onClick={()=>setDiff(d)} style={{background:diff===d?`${col}22`:"rgba(0,0,0,.3)",border:`2px solid ${diff===d?col:"rgba(255,255,255,.08)"}`,borderRadius:10,padding:"12px 10px",color:diff===d?col:"#9ca3af",fontWeight:700,fontSize:13,cursor:"pointer"}}>{ic} {lbl}</button>
+            ))}
+          </div>
+        </div>
+        {/* Num questions */}
+        <div style={{...G(),padding:24,marginBottom:14}}>
+          <h2 style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:14}}>{t.nq}</h2>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+            {[5,10,15,20].map(n=>(
+              <button key={n} onClick={()=>setNumQ(n)} style={{background:numQ===n?`${C.green}22`:"rgba(0,0,0,.3)",border:`2px solid ${numQ===n?C.green:"rgba(255,255,255,.08)"}`,borderRadius:10,padding:"12px 0",color:numQ===n?C.green:"#9ca3af",fontWeight:800,fontSize:18,cursor:"pointer"}}>{n}</button>
+            ))}
+          </div>
+        </div>
+        {lang==="sn"&&<div style={{background:"rgba(168,85,247,.08)",border:`1px solid rgba(168,85,247,.3)`,borderRadius:8,padding:"8px 14px",marginBottom:12,color:C.purple,fontSize:12}}>{t.snNote}</div>}
+        <button onClick={generate} style={{...Btn(C.green),width:"100%",fontSize:18,padding:"18px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:`0 0 30px rgba(34,197,94,.35)`}}>
+          <Play size={22}/> {t.play}
+        </button>
+      </div>
+    </div>
+  );
+
+  if(screen==="loading") return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <style>{SPIN}</style>
+      <div style={{textAlign:"center",maxWidth:400,padding:20}}>
+        <div style={{width:90,height:90,background:"linear-gradient(135deg,#22c55e,#a855f7)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",fontSize:40,boxShadow:"0 0 60px rgba(34,197,94,.4)"}}>🌍</div>
+        <Loader2 size={40} style={{color:C.green,animation:"spin 1s linear infinite",margin:"0 auto 16px",display:"block"}}/>
+        <h2 style={{color:"#fff",fontWeight:800,fontSize:22,marginBottom:8}}>{t.gen2}</h2>
+        <p style={{color:"#6b7280",fontSize:13,marginBottom:20}}>{t.ai}</p>
+        <div style={{background:"rgba(34,197,94,.08)",border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 18px"}}>
+          <p style={{color:C.green,fontSize:12,fontWeight:700,marginBottom:4}}>⚡ Haiku AI · Fast Generation</p>
+          <p style={{color:"#6b7280",fontSize:12}}>If no response in 20s, offline bank loads automatically</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if(screen==="game"&&qs.length>0) {
+    const q=qs[qi];
+    return (
+      <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+        {showQuit&&<QuitModal/>}
+        <div style={{maxWidth:640,width:"100%"}}>
+          {ofl&&<div style={{background:"rgba(245,158,11,.1)",border:`1px solid ${C.gold}`,borderRadius:8,padding:"8px 14px",color:C.gold,fontSize:12,fontWeight:700,marginBottom:12,textAlign:"center"}}>{t.ofl}</div>}
+          {/* Progress + quit + timer */}
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+            <button onClick={()=>setShowQuit(true)} style={{background:"transparent",border:`1px solid rgba(255,255,255,.15)`,borderRadius:8,color:"#6b7280",cursor:"pointer",padding:"6px 10px",fontSize:13,flexShrink:0}}>✕</button>
+            <div style={{flex:1,background:"rgba(255,255,255,.06)",borderRadius:99,height:6,overflow:"hidden"}}>
+              <div style={{width:`${(qi/qs.length)*100}%`,height:"100%",background:`linear-gradient(90deg,${C.green},${C.purple})`,transition:"width .5s"}}/>
+            </div>
+            <div style={{position:"relative",width:50,height:50,flexShrink:0}}>
+              <svg width="50" height="50" style={{transform:"rotate(-90deg)"}}>
+                <circle cx="25" cy="25" r="21" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="4"/>
+                <circle cx="25" cy="25" r="21" fill="none" stroke={tColor} strokeWidth="4"
+                  strokeDasharray={`${2*Math.PI*21}`}
+                  strokeDashoffset={`${2*Math.PI*21*(1-tPct/100)}`}
+                  style={{transition:"stroke-dashoffset .9s,stroke .3s"}}/>
+              </svg>
+              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",color:tColor,fontWeight:900,fontSize:14}}>{tLeft}</div>
+            </div>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
+            <span style={{color:"#9ca3af",fontSize:14,fontWeight:700}}>{t.q} {qi+1} {t.of} {qs.length}</span>
+            <span style={{color:C.gold,fontWeight:800,fontSize:15}}>⭐ {score}</span>
+          </div>
+          <div style={{...G(),padding:28,marginBottom:14}}>
+            {q.sdg&&<span style={{background:"rgba(34,197,94,.12)",border:`1px solid ${C.border}`,borderRadius:20,padding:"3px 12px",color:C.green,fontSize:11,fontWeight:700,display:"inline-block",marginBottom:14}}>{q.sdg} · {q.category}</span>}
+            <h2 style={{color:"#fff",fontWeight:700,fontSize:mob?16:18,lineHeight:1.55}}>{q.question}</h2>
+          </div>
+          {shown&&picked===null&&(
+            <div style={{...G(),padding:14,marginBottom:14,borderColor:C.red,textAlign:"center"}}>
+              <span style={{color:C.red,fontWeight:800,fontSize:16}}>{t.tup}</span>
+              <span style={{color:"#9ca3af",fontSize:13,marginLeft:12}}>✓ {q.options[q.correctIndex]}</span>
+            </div>
+          )}
+          <div style={{display:"grid",gap:10,marginBottom:14}}>
+            {q.options.map((opt,idx)=>{
+              const sel=picked===idx, cor=idx===q.correctIndex;
+              const bg=shown?(cor?`${C.green}22`:sel?"rgba(239,68,68,.15)":"rgba(0,0,0,.3)"):"rgba(0,0,0,.3)";
+              const bc=shown?(cor?C.green:sel?C.red:"rgba(255,255,255,.08)"):"rgba(255,255,255,.08)";
+              const tc=shown?(cor?C.green:sel?C.red:"#9ca3af"):"#d1d5db";
+              return <button key={idx} onClick={()=>pick(idx)} disabled={shown} style={{background:bg,border:`2px solid ${bc}`,borderRadius:12,padding:"14px 18px",color:tc,fontWeight:600,fontSize:mob?14:15,cursor:shown?"default":"pointer",textAlign:"left",transition:"all .2s",display:"flex",alignItems:"center",gap:12}}><span style={{background:"rgba(255,255,255,.08)",borderRadius:6,padding:"2px 9px",fontWeight:800,fontSize:12,flexShrink:0}}>{String.fromCharCode(65+idx)}</span>{opt}</button>;
+            })}
+          </div>
+          {shown&&<>
+            <div style={{...G(),padding:18,marginBottom:14,borderColor:picked===q.correctIndex?C.green:C.red}}>
+              <div style={{color:picked===q.correctIndex?C.green:C.red,fontWeight:800,marginBottom:6}}>{picked===q.correctIndex?t.ok:t.no}</div>
+              <div style={{color:"#9ca3af",fontSize:14,lineHeight:1.6}}>{q.explanation}</div>
+            </div>
+            <button onClick={next} style={{...Btn(C.green),width:"100%",fontSize:16,padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              {qi<qs.length-1?t.nextQ:t.seeR} <ChevronRight size={18}/>
+            </button>
+          </>}
+        </div>
+      </div>
+    );
+  }
+
+  if(screen==="results") {
+    const medal=fpct>=80?"🥇":fpct>=60?"🥈":fpct>=40?"🥉":"💪";
+    const msg=fpct>=80?t.champ:fpct>=60?t.great:fpct>=40?t.good:t.keep;
+    const bd=catBD();
+    const canCert=fpct>=70;
+    return (
+      <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+        {donate&&<DonModal/>}
+        <canvas ref={canvasRef} style={{display:"none"}}/>
+        <div style={{maxWidth:560,width:"100%",textAlign:"center"}}>
+          <div style={{fontSize:72,marginBottom:8}}>{medal}</div>
+          <h1 style={{fontSize:36,fontWeight:900,background:"linear-gradient(135deg,#22c55e,#a855f7)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:4}}>{t.done}</h1>
+          <p style={{color:"#6b7280",fontSize:15,marginBottom:24}}>{msg}</p>
+          <div style={{...G(),padding:28,marginBottom:14}}>
+            <div style={{fontSize:62,fontWeight:900,color:C.green,marginBottom:4}}>{fpct}%</div>
+            <div style={{color:"#9ca3af",fontSize:16,marginBottom:4}}>{scoreRef.current} of {qs.length} correct · {diff.toUpperCase()}</div>
+            {/* Cert eligibility note */}
+            <div style={{display:"inline-block",background:canCert?"rgba(34,197,94,.12)":"rgba(107,114,128,.1)",border:`1px solid ${canCert?C.green:"#374151"}`,borderRadius:20,padding:"4px 14px",fontSize:12,color:canCert?C.green:"#6b7280",fontWeight:700,marginBottom:20}}>{canCert?"🏆 Certificate Eligible":"🏆 Score 70%+ for Certificate"}</div>
+            {/* Category Breakdown */}
+            {Object.keys(bd).length>0&&<div style={{borderTop:`1px solid ${C.border}`,paddingTop:18}}>
+              <div style={{color:"#fff",fontWeight:800,fontSize:14,marginBottom:14,textAlign:"left"}}>{t.catBD}</div>
+              {Object.entries(bd).map(([cat,{correct,total}])=>{
+                const p=Math.round((correct/total)*100),{color,icon}=CAT[cat]||{color:C.green,icon:"🌍"};
+                return <div key={cat} style={{marginBottom:12}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}><span style={{color:"#9ca3af",fontSize:13}}>{icon} {cat}</span><span style={{color,fontWeight:700,fontSize:13}}>{correct}/{total} ({p}%)</span></div>
+                  <div style={{background:"rgba(255,255,255,.06)",borderRadius:99,height:5}}><div style={{width:`${p}%`,height:"100%",background:color,borderRadius:99,transition:"width .8s"}}/></div>
+                </div>;
+              })}
+            </div>}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+            <button onClick={restart} style={{...Btn(C.green),display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><RefreshCw size={16}/>{t.retry}</button>
+            <button onClick={downloadCert} style={{...Btn(canCert?C.purple:"#374151"),display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Award size={16}/>{t.cert}</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
+            <button onClick={printCert} style={{...Btn(canCert?C.purple:"#374151",true),display:"flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:12}}><Printer size={14}/>{t.printCert}</button>
+            <button onClick={()=>{
+              const pct=Math.round((scoreRef.current/qs.length)*100);
+              const msg=`🌍 PGCN Climate Trivia%0A%0A👤 ${encodeURIComponent(user?.name||'Player')}%0A📊 Score: ${scoreRef.current}/${qs.length} (${pct}%)%0A📚 ${encodeURIComponent(cats.join(', '))}%0A📅 ${new Date().toLocaleDateString('en-GB')}%0A%0A🔗 https://KingdomGwangwavaPGCN.github.io/Climate-Trivia-/%0A%0APeace Gender and Climate Network`;
+              window.open('https://wa.me/263719802319?text='+msg,'_blank');
+            }} style={{...Btn(C.green),display:"flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:13}}>📲 WhatsApp Score</button>
+            <button onClick={()=>makeCard(canvasRef,user?.name||"Player",scoreRef.current,qs.length,fpct,cats,diff)} style={{...Btn(C.gold),display:"flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:12}}>📤 {t.share}</button>
+            <button onClick={()=>setScreen("analytics")} style={{...Btn(C.blue),display:"flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:12}}><BarChart3 size={14}/>{t.me}</button>
+          </div>
+          <button onClick={()=>setDonate(true)} style={{...Btn(C.gold,true),width:"100%",fontSize:14}}>💚 Support PGCN Climate Education</button>
+        </div>
+      </div>
+    );
+  }
+
+  if(screen==="adminPin") return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{maxWidth:380,width:"100%",textAlign:"center"}}>
+        <Lock size={48} style={{color:C.blue,marginBottom:16}}/>
+        <h1 style={{color:"#fff",fontWeight:900,fontSize:28,marginBottom:6}}>{t.admin}</h1>
+        <p style={{color:"#6b7280",fontSize:13,marginBottom:24}}>{t.apin}</p>
+        <div style={{...G(),padding:28}}>
+          <input type="password" value={pinIn} onChange={e=>{setPinIn(e.target.value);setPinErr(false);}} placeholder="••••••••"
+            onKeyDown={e=>{if(e.key==="Enter") checkPin();}}
+            style={{width:"100%",background:"rgba(0,0,0,.5)",color:"#fff",border:`2px solid ${pinErr?C.red:C.border}`,borderRadius:10,padding:"14px",fontSize:20,outline:"none",textAlign:"center",letterSpacing:4,boxSizing:"border-box",marginBottom:12}}/>
+          {pinErr&&<p style={{color:C.red,fontSize:13,marginBottom:12}}>Incorrect PIN. Please try again.</p>}
+          <button style={{...Btn(C.blue),width:"100%",marginBottom:10}} onClick={checkPin}>{t.aacc}</button>
+          <button style={{...Btn(C.green,true),width:"100%"}} onClick={()=>setScreen("setup")}>{t.back}</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if(screen==="analytics") return <Analytics t={t} mob={mob} onBack={()=>setScreen("setup")} isAdmin={false}/>;
+  if(screen==="admin")     return <Analytics t={t} mob={mob} onBack={()=>setScreen("setup")} isAdmin={true}/>;
+  return null;
+}
+
+// ════════════════ ANALYTICS ════════════════
+function Analytics({ t, mob, onBack, isAdmin }) {
+  const [sessions,  setSessions]  = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [fcls,      setFcls]      = useState("all");
+  const [classes,   setClasses]   = useState([]);
+  const [tab,       setTab]       = useState("overview");
+  const [donate,    setDonate]    = useState(false);
+
+  useEffect(()=>{ load(); },[]);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const sk=await window.storage.list("session:");
+      if(sk?.keys){
+        const arr=[],cls=new Set();
+        for(const k of sk.keys){try{const r=await window.storage.get(k);if(r?.value){const s=JSON.parse(r.value);arr.push(s);if(s.userClass) cls.add(s.userClass);}}catch{}}
+        arr.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+        setSessions(arr); setClasses(Array.from(cls).sort());
+      }
+      if(isAdmin){
+        // ── Load BOTH old (feedback:) and new (fb:) prefixes ──
+        const allFb=[];
+        for(const prefix of ["fb:","feedback:"]){
+          try{
+            const fk=await window.storage.list(prefix);
+            if(fk?.keys){ for(const k of fk.keys){try{const r=await window.storage.get(k);if(r?.value) allFb.push(JSON.parse(r.value));}catch{}} }
+          }catch{}
+        }
+        allFb.sort((a,b)=>new Date(b.ts||b.timestamp)-new Date(a.ts||a.timestamp));
+        setFeedbacks(allFb);
+      }
+    } finally { setLoading(false); }
+  };
+
+  const resetAll = async () => {
+    if(!window.confirm("Delete ALL data? This cannot be undone.")) return;
+    try{
+      for(const prefix of ["session:","fb:","feedback:"]){
+        const k=await window.storage.list(prefix); if(k?.keys) for(const x of k.keys){try{await window.storage.delete(x);}catch{}}
+      }
+      setSessions([]); setFeedbacks([]); alert("All data cleared.");
+    }catch{}
+  };
+
+  const exportCSV = () => {
+    const rows=[["Name","Class","Gender","Age","Date","Categories","Difficulty","Questions","Score","Percentage","Time(s)"].join(","),
+      ...filt.map(s=>[s.userName,s.userClass||"N/A",s.userGender||"N/A",s.userAge||"N/A",new Date(s.timestamp).toLocaleDateString(),s.categories?.join("; "),s.difficulty,s.totalQuestions,s.score,s.percentage+"%",s.totalTimeSeconds].join(","))].join("\n");
+    Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([rows],{type:"text/csv"})),download:`PGCN_Analytics_${new Date().toISOString().split("T")[0]}.csv`}).click();
+  };
+
+  const filt  = fcls==="all"?sessions:sessions.filter(s=>s.userClass===fcls);
+  const stats = { players:new Set(filt.map(s=>s.userId)).size, sessions:filt.length, avgSc:filt.length?Math.round(filt.reduce((a,s)=>a+s.percentage,0)/filt.length):0, avgT:filt.length?Math.round(filt.reduce((a,s)=>a+s.totalTimeSeconds,0)/filt.length):0, pass:filt.length?Math.round((filt.filter(s=>s.percentage>=70).length/filt.length)*100):0 };
+  const gSt   = filt.reduce((a,s)=>{const g=s.userGender||"Unknown";a[g]=(a[g]||0)+1;return a;},{});
+  const aSt   = filt.reduce((a,s)=>{const ag=s.userAge||"Unknown";a[ag]=(a[ag]||0)+1;return a;},{});
+  const catPf = {};
+  filt.forEach(s=>{if(s.categoryBreakdown) Object.entries(s.categoryBreakdown).forEach(([c,{correct,total}])=>{if(!catPf[c]) catPf[c]={correct:0,total:0};catPf[c].correct+=correct;catPf[c].total+=total;});});
+
+  const GLS = (x={})=>({background:C.panel,backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)",border:`1px solid ${C.border}`,borderRadius:16,...x});
+  const TABS = ["overview","sessions","categories","demographics",...(isAdmin?["feedback","admin"]:[])];
+  const TLAB = {overview:"Overview",sessions:"Sessions",categories:"Categories",demographics:"Demographics",feedback:"Feedback",admin:"⚠️ Admin"};
+
+  if(loading) return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><style>{SPIN}</style><Loader2 size={40} style={{color:C.green,animation:"spin 1s linear infinite"}}/></div>;
+
+  // responsive stats grid: 3-col on mobile, 5-col on desktop
+  const statCols = mob ? "repeat(3,1fr)" : "repeat(5,1fr)";
+
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,padding:16}}>
+      <div style={{maxWidth:960,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24,flexWrap:"wrap",gap:10}}>
+          <div>
+            <h1 style={{fontSize:mob?20:26,fontWeight:900,background:`linear-gradient(135deg,${isAdmin?C.gold:C.blue},${C.purple})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:4}}>{isAdmin?"🔐 Admin Panel":t.dash}</h1>
+            <p style={{color:"#6b7280",fontSize:11}}>UN-Standard M&E · PGCN v5.0{isAdmin?" · Restricted":""}</p>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button style={{background:"transparent",border:`2px solid ${C.green}`,borderRadius:10,color:C.green,fontWeight:800,fontSize:13,cursor:"pointer",padding:"8px 14px"}} onClick={()=>setDonate(true)}>💚</button>
+            <button style={{background:"transparent",border:`2px solid ${C.green}`,borderRadius:10,color:C.green,fontWeight:800,fontSize:13,cursor:"pointer",padding:"8px 14px"}} onClick={onBack}>{t.back}</button>
+          </div>
+        </div>
+        {/* Tabs — scrollable on mobile */}
+        <div style={{display:"flex",gap:8,marginBottom:20,overflowX:"auto",paddingBottom:4}}>
+          {TABS.map(tb=><button key={tb} onClick={()=>setTab(tb)} style={{background:tab===tb?`${tb==="admin"?C.gold:C.green}22`:"transparent",border:`2px solid ${tab===tb?tb==="admin"?C.gold:C.green:"rgba(255,255,255,.08)"}`,borderRadius:8,padding:"8px 14px",color:tab===tb?tb==="admin"?C.gold:C.green:"#6b7280",fontWeight:700,fontSize:12,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>{TLAB[tb]}</button>)}
+        </div>
+
+        {tab==="overview"&&<>
+          <div style={{display:"grid",gridTemplateColumns:statCols,gap:10,marginBottom:14}}>
+            {[[t.players,stats.players,C.blue,"👥"],[t.sess,stats.sessions,C.green,"📊"],[t.avg,stats.avgSc+"%",C.gold,"🏆"],[t.avgt,stats.avgT+"s",C.purple,"⏱"],[t.prate,stats.pass+"%",C.green,"✅"]].map(([lbl,val,col,ic])=>(
+              <div key={lbl} style={{...GLS(),padding:mob?"12px 8px":"16px 12px",textAlign:"center"}}><div style={{fontSize:mob?18:22,marginBottom:4}}>{ic}</div><div style={{fontSize:mob?18:24,fontWeight:900,color:col}}>{val}</div><div style={{color:"#6b7280",fontSize:mob?9:10,marginTop:4}}>{lbl}</div></div>
+            ))}
+          </div>
+          <div style={{...GLS(),padding:22}}>
+            <h2 style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:16}}>Category Performance (Aggregated)</h2>
+            {Object.keys(catPf).length===0?<p style={{color:"#374151",fontSize:13}}>No data yet</p>:
+              Object.entries(catPf).sort((a,b)=>(b[1].correct/b[1].total)-(a[1].correct/a[1].total)).map(([cat,{correct,total}])=>{
+                const p=Math.round((correct/total)*100),{color,icon}=CAT[cat]||{color:C.green,icon:"🌍"};
+                return <div key={cat} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}><span style={{color:"#9ca3af",fontSize:13}}>{icon} {cat}</span><span style={{color,fontWeight:700,fontSize:13}}>{correct}/{total} ({p}%)</span></div><div style={{background:"rgba(255,255,255,.06)",borderRadius:99,height:6}}><div style={{width:`${p}%`,height:"100%",background:color,borderRadius:99,transition:"width .8s"}}/></div></div>;
+              })}
+          </div>
+        </>}
+
+        {tab==="sessions"&&<div style={{...GLS(),padding:22}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
+            <h2 style={{color:"#fff",fontWeight:800,fontSize:16}}>{t.sh}</h2>
+            <div style={{display:"flex",gap:8}}>
+              <select value={fcls} onChange={e=>setFcls(e.target.value)} style={{background:"rgba(0,0,0,.5)",color:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"7px 12px",fontSize:13,outline:"none"}}>
+                <option value="all">{t.allCl}</option>{classes.map(c=><option key={c} value={c}>{c}</option>)}
+              </select>
+              <button style={{background:C.green,color:"#000",border:`2px solid ${C.green}`,borderRadius:10,fontWeight:800,fontSize:13,cursor:"pointer",padding:"8px 14px",display:"flex",alignItems:"center",gap:6}} onClick={exportCSV}><Download size={16}/>CSV</button>
+            </div>
+          </div>
+          {filt.length===0?<p style={{color:"#374151",textAlign:"center",padding:32}}>{t.none}</p>:(
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+                <thead><tr style={{borderBottom:`1px solid ${C.border}`}}>{[t.nm,t.cl,t.dt,t.sc,t.df].map(h=><th key={h} style={{textAlign:"left",padding:"8px 12px",color:"#6b7280",fontWeight:700}}>{h}</th>)}</tr></thead>
+                <tbody>{filt.slice(0,30).map((s,i)=>(
+                  <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
+                    <td style={{padding:"10px 12px",color:"#d1d5db"}}>{s.userName}</td>
+                    <td style={{padding:"10px 12px",color:"#9ca3af"}}>{s.userClass||"N/A"}</td>
+                    <td style={{padding:"10px 12px",color:"#9ca3af"}}>{new Date(s.timestamp).toLocaleDateString()}</td>
+                    <td style={{padding:"10px 12px",color:s.percentage>=70?C.green:s.percentage>=50?C.gold:C.red,fontWeight:700}}>{s.score}/{s.totalQuestions} ({s.percentage}%)</td>
+                    <td style={{padding:"10px 12px",color:"#9ca3af",textTransform:"capitalize"}}>{s.difficulty}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+        </div>}
+
+        {tab==="categories"&&<div style={{...GLS(),padding:22}}>
+          <h2 style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:20}}>Detailed Category Analytics</h2>
+          {Object.keys(catPf).length===0?<p style={{color:"#374151",fontSize:13}}>No data yet</p>:
+            Object.entries(catPf).map(([cat,{correct,total}])=>{
+              const p=Math.round((correct/total)*100),{color,icon}=CAT[cat]||{color:C.green,icon:"🌍"};
+              return <div key={cat} style={{background:"rgba(0,0,0,.3)",borderRadius:12,padding:"18px 20px",marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><span style={{color:"#fff",fontWeight:700,fontSize:15}}>{icon} {cat}</span><span style={{color,fontWeight:900,fontSize:22}}>{p}%</span></div>
+                <div style={{background:"rgba(255,255,255,.06)",borderRadius:99,height:8,marginBottom:8}}><div style={{width:`${p}%`,height:"100%",background:`linear-gradient(90deg,${color},${color}88)`,borderRadius:99,transition:"width .8s"}}/></div>
+                <span style={{color:"#6b7280",fontSize:12}}>{correct} correct out of {total} attempts</span>
+              </div>;
+            })}
+        </div>}
+
+        {tab==="demographics"&&<div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
+          {[[t.gd,gSt,C.purple],[t.ad,aSt,C.blue]].map(([title,data,col])=>(
+            <div key={title} style={{...GLS(),padding:22}}>
+              <h2 style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:14}}>{title}</h2>
+              {Object.entries(data).length?Object.entries(data).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(
+                <div key={k} style={{marginBottom:12}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{color:"#9ca3af",fontSize:13,textTransform:"capitalize"}}>{k}</span><span style={{color:col,fontWeight:700,fontSize:13}}>{v} ({Math.round((v/filt.length)*100)}%)</span></div>
+                  <div style={{background:"rgba(255,255,255,.06)",borderRadius:99,height:5}}><div style={{width:`${(v/filt.length)*100}%`,height:"100%",background:col,borderRadius:99}}/></div>
+                </div>
+              )):<p style={{color:"#374151",fontSize:13}}>No data yet</p>}
+            </div>
+          ))}
+        </div>}
+
+        {tab==="feedback"&&isAdmin&&<div style={{...GLS(),padding:22}}>
+          <h2 style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:16}}>{t.fbl} ({feedbacks.length})</h2>
+          {feedbacks.length===0?<p style={{color:"#374151",fontSize:13}}>{t.nofb}</p>:
+            feedbacks.map((fb,i)=>(
+              <div key={i} style={{background:"rgba(0,0,0,.3)",borderRadius:10,padding:"14px 18px",marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{color:C.green,fontWeight:700,fontSize:13}}>{fb.userName||"Anonymous"}</span><span style={{color:"#6b7280",fontSize:12}}>{new Date(fb.ts||fb.timestamp).toLocaleDateString()}</span></div>
+                <p style={{color:"#d1d5db",fontSize:14,lineHeight:1.6}}>{fb.feedback}</p>
+              </div>
+            ))}
+        </div>}
+
+        {tab==="admin"&&isAdmin&&<div style={{...GLS(),padding:28,border:`2px solid ${C.gold}`}}>
+          <h2 style={{color:C.gold,fontWeight:900,fontSize:18,marginBottom:6}}>⚠️ Admin Controls</h2>
+          <p style={{color:"#6b7280",fontSize:13,marginBottom:24}}>Restricted access. Actions are permanent and irreversible.</p>
+          <div style={{background:"rgba(0,0,0,.4)",borderRadius:12,padding:20,marginBottom:16}}>
+            <h3 style={{color:"#fff",fontWeight:700,marginBottom:4}}>Platform Statistics</h3>
+            <p style={{color:"#9ca3af",fontSize:13}}>Sessions: {sessions.length} · Feedback: {feedbacks.length} · Unique players: {new Set(sessions.map(s=>s.userId)).size}</p>
+          </div>
+          <button style={{background:"rgba(239,68,68,.15)",border:`2px solid ${C.red}`,borderRadius:10,color:C.red,fontWeight:800,fontSize:15,cursor:"pointer",padding:"14px 20px",width:"100%"}} onClick={resetAll}>{t.reset}</button>
+        </div>}
+
+        <div style={{...GLS(),padding:20,textAlign:"center",marginTop:14}}>
+          <Globe2 size={24} style={{color:C.green,margin:"0 auto 8px",display:"block"}}/>
+          <p style={{color:"#fff",fontWeight:700,marginBottom:4}}>Peace, Gender & Climate Network</p>
+          <p style={{color:"#6b7280",fontSize:12}}>Kingdom Gwangwava · +263 71 980 2319 · pgcnglobal@gmail.com</p>
+          <p style={{color:"#374151",fontSize:11,marginTop:8}}>SDGs 4,5,7,13,16,17 · v5.0 · IPCC AR7 · COP30 · UNEP EGR 2025</p>
+        </div>
+      </div>
+      {donate&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99,padding:16}}>
+          <div style={{...GLS(),padding:36,maxWidth:420,width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:48,marginBottom:12}}>💚</div>
+            <h2 style={{color:C.green,fontSize:26,fontWeight:900,marginBottom:16}}>Support Climate Action</h2>
+            {[["EcoCash / OneMoney","+263 71 980 2319"],["InnBucks","+263 71 980 2319"]].map(([l,n])=>(
+              <div key={l} style={{background:"rgba(34,197,94,.08)",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 20px",marginBottom:10,textAlign:"left"}}><div style={{color:"#6b7280",fontSize:12,marginBottom:4}}>{l}</div><div style={{color:C.green,fontSize:22,fontWeight:900}}>{n}</div></div>
+            ))}
+            <button style={{background:C.green,color:"#000",border:`2px solid ${C.green}`,borderRadius:10,fontWeight:800,fontSize:16,cursor:"pointer",padding:"12px 20px",width:"100%",marginTop:16}} onClick={()=>setDonate(false)}>Close</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
